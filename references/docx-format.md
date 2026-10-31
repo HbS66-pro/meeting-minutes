@@ -40,7 +40,17 @@
 python scripts/md2docx.py 草稿.md              # 输出同名 .docx
 python scripts/md2docx.py 草稿.md 成稿.docx    # 指定输出
 python scripts/md2docx.py 草稿.md --check      # 生成后立刻校验格式
+python scripts/md2docx.py notes.md --lang en   # 英文排版
 ```
+
+`--lang`：
+
+| 值 | 字体 | 首行缩进 | 段后 |
+|---|---|---|---|
+| `zh`（默认） | 宋体 / 黑体，西文 Times New Roman | 2 字符 | 0 |
+| `en` | 全篇 Times New Roman | 无 | 6pt |
+
+两种语言都用固定行距 28 磅，字号相同（正文 12pt，标题 16/14pt）。
 
 `--check` 会重新打开产物逐段核对：段落数、文字、对齐、行距是否固定 28 磅、段前段后是否为 0、首行缩进是否 2 字符、每段中西文字体字号、蓝色强调是否为 #0000FF 且加粗。全部通过打印 `格式自检通过：N 段`，否则逐条列出问题并以退出码 1 结束。
 

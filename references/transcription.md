@@ -105,7 +105,45 @@ with open("会议.txt", "w", encoding="utf-8") as f:
 - **转写稿是敏感文件**：含真实姓名和未公开内容，别提交到仓库或公开分享。
 - **长会分段**：超过 1 小时的音频先切段跑，中途失败不丢已转内容。
 
-## 六、来源
+## 六、命令备查
+
+**从链接/平台取音频**（yt-dlp，已装则跳过安装）：
+
+```bash
+yt-dlp -x --audio-format wav -o "会议.%(ext)s" "音频或视频URL"
+yt-dlp -x --audio-format mp3 -o "会议.%(ext)s" "音频或视频URL"
+```
+
+**平台本身有字幕时，别转写**：
+
+```bash
+yt-dlp --write-subs --write-auto-subs --skip-download --sub-langs "zh.*,en" -o "%(title)s" "URL"
+```
+
+得到的 `.srt` 去掉序号行与时间码就是正文：
+
+```powershell
+(Get-Content .\字幕.srt) -notmatch '^\d+$|-->|^\s*$' | Set-Content .\字幕.txt -Encoding utf8
+```
+
+**格式转换**（ffmpeg）：手机录的 m4a/aac 先转 wav，识别更稳。
+
+```bash
+ffmpeg -i 会议.m4a -ar 16000 -ac 1 -c:a pcm_s16le 会议.wav
+```
+
+**官方 whisper（装了 PyTorch 再用）**：
+
+```bash
+whisper 会议.wav --model small --language zh --output_format srt
+whisper 会议.wav --model small --language en --output_format txt
+```
+
+**体积参考**：tiny 75 MB / base 141 MB / small 466 MB / medium 1.5 GB / large-v3 2.9 GB。中文会议 `small` 起步，先跑 10 分钟片段试。
+
+**常见坑**：首次运行会下载模型，看着像卡住；CPU 上 large 系列慢到不可用；`.srt` 断句按显示切、不按语义，做纪要前先合句；同音错字（人名、项目代号、专业术语）必须对照材料核。
+
+## 七、来源
 
 - [夸克录音纪要帮助页](https://www.quark.cn/documents/help/recording-notes)（功能、多人区分、导出）
 - [Buzz（GitHub）](https://github.com/chidiwilliams/buzz)（桌面版 Whisper）
