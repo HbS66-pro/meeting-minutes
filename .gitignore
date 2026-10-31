@@ -1,0 +1,20 @@
+# 本地产物
+out/
+*.log
+
+# 会议材料与成稿，绝不入库
+*.docx
+!assets/reference.docx
+*.pdf
+*.md.bak
+~$*
+
+# 转录原文，含真实姓名
+*转录*
+*录音*
+transcripts/
+
+__pycache__/
+*.pyc
+.vscode/
+.DS_Store
