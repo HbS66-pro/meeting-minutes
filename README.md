@@ -4,7 +4,7 @@ An Agent Skill (plus a standalone Markdown-to-Word formatter) for turning 1–3 
 
 中文说明见 [README.zh-CN.md](README.zh-CN.md).
 
-I put this together while preparing for the **China International College Students' Innovation Competition** (中国国际大学生创新大赛), where we had endless page-by-page deck reviews, advisor coaching sessions, and tight revision deadlines. Since then I have also been using it for regular lab meetings, project reviews, and client calls.
+This skill was born while preparing for the **China International College Students' Innovation Competition** (中国国际大学生创新大赛), where we had endless page-by-page deck reviews, advisor coaching sessions, and tight revision deadlines. Since then I have also been using it for regular lab meetings, project reviews, and client calls.
 
 It follows the `SKILL.md` convention so any agent that supports Agent Skills can load it. The bundled `scripts/md2docx.py` script also works standalone whenever you just want to turn Markdown into a clean `.docx`.
 
