@@ -1,111 +1,128 @@
 # meeting-minutes
 
-Turn a 1–3 hour meeting transcript into formal minutes — in Chinese or English.
-
-> This skill was distilled from my practice in the **China International College Students' Innovation Competition** (中国国际大学生创新大赛): page-by-page material reviews, expert coaching sessions, revision checklists, deadline scrambles. It works well for competition work, and in my own use it performs just as well in ordinary meetings — lab meetings, project reviews, client calls.
-
-An Agent Skill: written to the `SKILL.md` convention, so any agent that reads skills can load it. It also ships a standalone script that renders Markdown into a formatted `.docx`.
+An Agent Skill (plus a standalone Markdown-to-Word formatter) for turning 1–3 hour meeting transcripts into structured minutes, in either Chinese or English.
 
 中文说明见 [README.zh-CN.md](README.zh-CN.md).
 
-## Three modes
+I put this together while preparing for the **China International College Students' Innovation Competition** (中国国际大学生创新大赛), where we had endless page-by-page deck reviews, advisor coaching sessions, and tight revision deadlines. Since then I have also been using it for regular lab meetings, project reviews, and client calls.
 
-Same transcript, three products — not three templates:
+It follows the `SKILL.md` convention so any agent that supports Agent Skills can load it. The bundled `scripts/md2docx.py` script also works standalone whenever you just want to turn Markdown into a clean `.docx`.
 
-| Mode | For | Keeps | Length |
+## Three output modes
+
+Depending on who needs to read the minutes, the skill produces one of three formats from the same transcript:
+
+| Mode | Best for | What it keeps | Typical length |
 |---|---|---|---|
-| Narrative | internal archive, handover | who raised what, who pushed back, how it was decided | 10–20% of transcript |
-| Inductive (default) | review, revision checklist | problem → fix → action, zero names | 8–15% |
-| Brief | chat thread, personal todo | numbered conclusions + action items | ≤400 words, 5–15 items |
+| `narrative` | Internal archive, handover | Who raised what, follow-up questions, how the decision landed | 10–20% of transcript |
+| `inductive` (default) | Reviews, revision checklists | Problem, decision, and next action, with personal names stripped | 8–15% of transcript |
+| `brief` | Group chats, personal todo list | Numbered takeaways and action items only | ≤400 words, 5–15 items |
 
-In one line: **narrative keeps the process, inductive keeps the conclusions, brief keeps the actions.**
+### Quick example
 
-See [`examples/demo.md`](examples/demo.md) for one fictional transcript rendered in all three modes.
+Given a short fictional transcript snippet (translated from [`examples/demo.md`](examples/demo.md)):
 
-## Why another minutes tool
+```text
+Speaker 1: First item is the procurement list: two clean benches, 120k budget.
+Speaker 2: Does 120k include installation?
+Speaker 1: No, installation is extra, roughly 8k.
+Speaker 3: Why not buy one large bench instead? Two small ones take up more space.
+Speaker 1: Lead time on the large one is 10 weeks, too late for the November inspection.
+Speaker 2: Schedule comes first. Stick with two small ones and put installation into the budget.
+Speaker 3: Fine, I will clear the room.
+```
 
-Existing tools fall into two camps: the summary baked into ASR output (a play-by-play), or a "time / place / attendees / decisions" template (no judgement at all).
+**Inductive mode** strips names and groups by issue:
 
-The hard part isn't compression, it's **editorial judgement**: what to cut as off-topic, which criticism to redirect at the work instead of the person, which line deserves bold. That is editing, not summarising.
+> **1. Budget must include installation**
+> The current 120k quote excludes installation (~8k), leaving a budget gap. Resubmit the list with installation itemized inside the total.
+>
+> **2. Keep two small clean benches**
+> One large unit saves space, but its 10-week lead time misses the November inspection. **Prioritize schedule and order two small units**; the lab team will clear the room.
 
-## Context first
+**Brief mode** cuts straight to takeaways and owners:
 
-Before drafting, the skill goes looking for the project: previous minutes, decks, proposals, glossaries, progress notes in your workspace. Knowing what the project is doing — and what the last meeting settled — is what makes the minutes use the project's own terms instead of generic phrasing. If it cannot find that context, it asks which folder the project lives in rather than guessing.
+> **Key points**
+> 1. Procurement budget updated to include installation (~128k total).
+> 2. Staying with two small benches because the large unit misses the November inspection.
+>
+> **Action items**
+> 1. Resubmit procurement list — Procurement (by Nov 5)
+> 2. Clear room — Lab team (this week)
+
+See [`examples/demo.md`](examples/demo.md) for the full side-by-side comparison including Narrative mode.
+
+## Context-first workflow
+
+Before writing anything, the skill looks around your workspace for project materials: earlier minutes, slide decks, proposals, glossaries, or progress notes. Reading those first helps it use the project's actual terminology and pick up where the last meeting left off. If it cannot locate the project folder, it asks instead of guessing.
+
+The output language automatically follows the transcript: English transcripts yield English minutes, Chinese transcripts yield Chinese minutes.
 
 ## Install
 
+Clone the repo and copy it into your agent's skills folder (for example `~/.claude/skills/` or `~/.dsh/skills/`):
+
 ```bash
 git clone https://github.com/HbS66-pro/meeting-minutes.git
-```
-
-Copy it into your agent's skills directory, e.g.:
-
-```bash
 cp -r meeting-minutes ~/.dsh/skills/meeting-minutes
 ```
 
-No package manager, no build step. If your agent reads skills from another directory, put it there.
-
 ## Usage
 
-In conversation:
+In conversation with your agent:
 
-> Transcript is in `meeting.md`. Give me inductive minutes, save to the current folder.
+> Transcript is in `meeting.md`. Write inductive minutes and save them to the current folder.
 
-- "keep the process / who said what" → narrative
-- nothing specified → inductive
-- "summary / just the points / action items" → brief
+You can pick a mode in plain language: ask for "who said what / keep the discussion" for `narrative`, "summary / just the action items" for `brief`, or leave it unspecified to get `inductive`.
 
-Chinese meetings:
+For Chinese meetings:
 
 > 转录在 `会议转录.md`，按归纳模式出纪要，存到当前目录。
 
-The transcript determines the output language: an English meeting produces English minutes, a Chinese meeting produces Chinese minutes.
+### Standalone `.docx` export
 
-Just want the docx, no agent:
+If you only want the Word formatter without using an agent:
 
 ```bash
 python -m pip install "python-docx>=1.0"
-python scripts/md2docx.py draft.md out.docx --check           # Chinese layout
+python scripts/md2docx.py draft.md out.docx --check            # Chinese layout
 python scripts/md2docx.py notes.md out.docx --lang en --check  # English layout
 ```
 
-`--check` reopens the file and verifies paragraph by paragraph: fonts, sizes, exact line spacing, first-line indent, paragraph spacing, and the two emphasis colours. It exits non-zero on any mismatch.
+The `--check` flag reopens the generated `.docx` and checks every paragraph for font family, font size, line spacing, indentation, paragraph spacing, and emphasis colors, exiting non-zero if anything drifts.
 
-## Output format
+## Word layout defaults
 
-Chinese (`--lang zh`, default): body 宋体 12pt, Latin text Times New Roman, exact 28pt line spacing, 2-character first-line indent; title and level-1 headings 黑体 16pt bold, level-2 黑体 14pt bold.
+- **Chinese (`--lang zh`, default):** 12pt SimSun (宋体) body with Times New Roman for Latin text, exact 28pt line spacing, 2-character first-line indent; title and H1 in 16pt bold SimHei (黑体), H2 in 14pt bold SimHei.
+- **English (`--lang en`):** Times New Roman throughout, no first-line indent, 6pt space after paragraphs, exact 28pt line spacing, same heading sizes.
+- **Emphasis:** `**text**` renders as black bold; `==text==` renders as blue bold (`#0000FF`), intended only for decisions that change action.
 
-English (`--lang en`): Times New Roman throughout, no first-line indent, 6pt after paragraphs, same 28pt exact spacing and heading sizes.
+## Turning audio into text
 
-Two emphasis levels in both: `**text**` black bold, `==text==` blue bold (#0000FF). Use them sparingly — only where it would change a decision.
+This skill starts from text and does not run speech recognition itself. If you only have a recording, [`references/transcription.md`](references/transcription.md) compares four practical routes (cloud transcription with speaker labels such as Quark Recording Notes, local Whisper / faster-whisper, mobile transcription saved to Markdown, and desktop automation fallback) along with ready-to-use `yt-dlp` and `ffmpeg` commands.
 
-## Upstream: where the text comes from
-
-This skill starts from text; it does not do speech recognition. If you only have audio, [`references/transcription.md`](references/transcription.md) lays out four routes and a selection table: one-click cloud transcription (Quark's "Recording Notes" and similar, with speaker separation), local Whisper family, phone transcription saved as Markdown, and desktop automation as a last resort. It also includes ready-to-run `yt-dlp` / `ffmpeg` commands.
-
-Rule of thumb: multi-speaker meetings that need names → cloud; confidential material → local faster-whisper, but you label speakers yourself.
+As a quick rule: use cloud transcription when you need multi-speaker labels; use local `faster-whisper` for confidential audio and label speakers manually.
 
 ## Repository layout
 
-```
+```text
 meeting-minutes/
 ├── SKILL.md                     # modes, rules, workflow, English quick reference
 ├── references/
-│   ├── modes.md                 # mode criteria, good/bad examples, rewriting
-│   ├── writing.md               # AI-tone, officialese, people vs. work
-│   ├── transcription.md         # audio → text: four routes, commands
-│   └── docx-format.md           # formatting spec and the Markdown subset
-├── scripts/md2docx.py           # Markdown → docx (python-docx only)
-└── examples/demo.md             # one transcript, three outputs
+│   ├── modes.md                 # mode criteria, examples, and conversion tips
+│   ├── writing.md               # tone checklist, avoiding officialese, handling criticism
+│   ├── transcription.md         # audio-to-text routes and commands
+│   └── docx-format.md           # Word formatting spec and supported Markdown syntax
+├── scripts/md2docx.py           # Markdown -> docx converter (python-docx only)
+└── examples/demo.md             # one transcript rendered in all three modes
 ```
 
-## Boundaries
+## Notes and limits
 
-- No speech-to-text, no meeting-platform integration, no calendar or reminders.
-- Not zero-touch: names, numbers, amounts and dates need a human pass.
-- No puffery: never praise results the meeting did not discuss.
+- Does not handle speech-to-text, meeting platform hooks, or calendar reminders.
+- Always do a quick human pass over names, numbers, budgets, and dates before sending minutes out.
+- The skill is instructed not to invent praise or conclusions that were never discussed in the meeting.
 
 ## License
 
-MIT. All names, organisations, projects and numbers in the examples are fictional.
+MIT. All names, organizations, projects, and figures in the examples are fictional.
